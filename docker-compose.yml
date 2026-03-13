@@ -21,7 +21,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: invoice-backend
+    container_name: moneywise-backend
     ports:
       - "8080:8080"
     environment:
@@ -39,7 +39,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: invoice-frontend
+    container_name: moneywise-frontend
     ports:
       - "80:80"
     depends_on:

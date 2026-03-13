@@ -1,0 +1,59 @@
+name: MoneyWise CI/CD
+
+on:
+  push:
+    branches: ["main"]
+
+  pull_request:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+jobs:
+  cicd:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # =========================
+      # Backend - Build & Tests
+      # =========================
+      - name: Backend - Build & Tests (Docker Maven)
+        run: |
+          docker run --rm \
+            -u $(id -u):$(id -g) \
+            -v "${{ github.workspace }}/backend":/app \
+            -w /app \
+            maven:3.9-eclipse-temurin-17 \
+            mvn -B clean test
+
+      # =========================
+      # Frontend - Build
+      # =========================
+      - name: Frontend - Install & Build (Docker Node)
+        run: |
+          docker run --rm \
+            -u $(id -u):$(id -g) \
+            -v "${{ github.workspace }}/frontend":/app \
+            -w /app \
+            node:20-alpine \
+            sh -lc "npm ci && npm run build"
+
+      # =========================
+      # Build Docker Images
+      # =========================
+      - name: Build Docker images
+        run: docker compose build
+
+      # =========================
+      # Deploy Application
+      # =========================
+      - name: Deploy application
+        run: |
+          docker compose down || true
+          docker compose up -d
+
+      - name: Verify running containers
+        run: docker ps
